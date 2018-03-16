@@ -129,8 +129,8 @@ usbRequest_t    *rq = (void *)data;
 
 int __attribute__((noreturn)) main(void)
 {
-	sbi(DDRB, PB4);
-	cbi(PORTB, PB4);
+	sbi(DDRB, PB0);
+	sbi(PORTB, PB0);
 	
 	//USB init
 	uchar   i;
@@ -167,6 +167,7 @@ int __attribute__((noreturn)) main(void)
             advanceCircleByFixedAngle();
             DBG1(0x03, 0, 0);   /* debug output: interrupt report prepared */
             usbSetInterrupt((void *)&reportBuffer, sizeof(reportBuffer));
+			tbi(PORTB,PB0);
         }
 		//USB loop end
     }
