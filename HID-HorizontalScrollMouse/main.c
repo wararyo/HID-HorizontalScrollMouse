@@ -34,35 +34,80 @@ publish any hardware using these IDs! This is for demonstration only!
 /* ----------------------------- USB interface ----------------------------- */
 /* ------------------------------------------------------------------------- */
 
-PROGMEM const char usbHidReportDescriptor[52] = { /* USB report descriptor, size must match usbconfig.h */
-    0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
-    0x09, 0x02,                    // USAGE (Mouse)
-    0xa1, 0x01,                    // COLLECTION (Application)
-    0x09, 0x01,                    //   USAGE (Pointer)
-    0xA1, 0x00,                    //   COLLECTION (Physical)
-    0x05, 0x09,                    //     USAGE_PAGE (Button)
-    0x19, 0x01,                    //     USAGE_MINIMUM
-    0x29, 0x03,                    //     USAGE_MAXIMUM
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x25, 0x01,                    //     LOGICAL_MAXIMUM (1)
-    0x95, 0x03,                    //     REPORT_COUNT (3)
-    0x75, 0x01,                    //     REPORT_SIZE (1)
-    0x81, 0x02,                    //     INPUT (Data,Var,Abs)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x75, 0x05,                    //     REPORT_SIZE (5)
-    0x81, 0x03,                    //     INPUT (Const,Var,Abs)
-    0x05, 0x01,                    //     USAGE_PAGE (Generic Desktop)
-    0x09, 0x30,                    //     USAGE (X)
-    0x09, 0x31,                    //     USAGE (Y)
-    0x09, 0x38,                    //     USAGE (Wheel)
-    0x15, 0x81,                    //     LOGICAL_MINIMUM (-127)
-    0x25, 0x7F,                    //     LOGICAL_MAXIMUM (127)
-    0x75, 0x08,                    //     REPORT_SIZE (8)
-    0x95, 0x03,                    //     REPORT_COUNT (3)
-    0x81, 0x06,                    //     INPUT (Data,Var,Rel)
-    0xC0,                          //   END_COLLECTION
-    0xC0,                          // END COLLECTION
+PROGMEM const char usbHidReportDescriptor[118] = { /* USB report descriptor, size must match usbconfig.h */
+    0x05, 0x01,        // USAGE_PAGE (Generic Desktop)
+    0x09, 0x02,        // USAGE (Mouse)
+    0xa1, 0x01,        // COLLECTION (Application)
+    0x09, 0x02,        //   USAGE (Mouse)
+    0xa1, 0x02,        //   COLLECTION (Logical)
+    0x09, 0x01,        //     USAGE (Pointer)
+    0xa1, 0x00,        //     COLLECTION (Physical)
+    // ------------------------------  Buttons
+    0x05, 0x09,        //       USAGE_PAGE (Button)
+    0x19, 0x01,        //       USAGE_MINIMUM (Button 1)
+    0x29, 0x05,        //       USAGE_MAXIMUM (Button 5)
+    0x15, 0x00,        //       LOGICAL_MINIMUM (0)
+    0x25, 0x01,        //       LOGICAL_MAXIMUM (1)
+    0x75, 0x01,        //       REPORT_SIZE (1)
+    0x95, 0x05,        //       REPORT_COUNT (5 Buttons)
+    0x81, 0x02,        //       INPUT (Data,Var,Abs)
+    // ------------------------------  Padding
+    0x75, 0x03,        //       REPORT_SIZE (8-5buttons 3)
+    0x95, 0x01,        //       REPORT_COUNT (1)
+    0x81, 0x03,        //       INPUT (Cnst,Var,Abs)
+    // ------------------------------  X,Y position
+    0x05, 0x01,        //       USAGE_PAGE (Generic Desktop)
+    0x09, 0x30,        //       USAGE (X)
+    0x09, 0x31,        //       USAGE (Y)
+    0x15, 0x81,        //       LOGICAL_MINIMUM (-127)
+    0x25, 0x7f,        //       LOGICAL_MAXIMUM (127)
+    0x75, 0x08,        //       REPORT_SIZE (8)
+    0x95, 0x02,        //       REPORT_COUNT (2)
+    0x81, 0x06,        //       INPUT (Data,Var,Rel)
+    0xa1, 0x02,        //       COLLECTION (Logical)
+    // ------------------------------  Vertical wheel res multiplier
+    0x09, 0x48,        //         USAGE (Resolution Multiplier)
+    0x15, 0x00,        //         LOGICAL_MINIMUM (0)
+    0x25, 0x01,        //         LOGICAL_MAXIMUM (1)
+    0x35, 0x01,        //         PHYSICAL_MINIMUM (1)
+    0x45, 0x08,        //         PHYSICAL_MAXIMUM (8)
+    0x75, 0x02,        //         REPORT_SIZE (2)
+    0x95, 0x01,        //         REPORT_COUNT (1)
+    0xa4,              //         PUSH
+    0xb1, 0x02,        //         FEATURE (Data,Var,Abs)
+    // ------------------------------  Vertical wheel
+    0x09, 0x38,        //         USAGE (Wheel)
+    0x15, 0x81,        //         LOGICAL_MINIMUM (-127)
+    0x25, 0x7f,        //         LOGICAL_MAXIMUM (127)
+    0x35, 0x00,        //         PHYSICAL_MINIMUM (0)        - reset physical
+    0x45, 0x00,        //         PHYSICAL_MAXIMUM (0)
+    0x75, 0x08,        //         REPORT_SIZE (8)
+    0x81, 0x06,        //         INPUT (Data,Var,Rel)
+    0xc0,              //       END_COLLECTION
+    0xa1, 0x02,        //       COLLECTION (Logical)
+    // ------------------------------  Horizontal wheel res multiplier
+    0x09, 0x48,        //         USAGE (Resolution Multiplier)
+    0xb4,              //         POP
+    0xb1, 0x02,        //         FEATURE (Data,Var,Abs)
+    // ------------------------------  Padding for Feature report
+    0x35, 0x00,        //         PHYSICAL_MINIMUM (0)        - reset physical
+    0x45, 0x00,        //         PHYSICAL_MAXIMUM (0)
+    0x75, 0x04,        //         REPORT_SIZE (4)
+    0xb1, 0x03,        //         FEATURE (Cnst,Var,Abs)
+    // ------------------------------  Horizontal wheel
+    0x05, 0x0c,        //         USAGE_PAGE (Consumer Devices)
+    0x0a, 0x38, 0x02,  //         USAGE (AC Pan)
+    0x15, 0x81,        //         LOGICAL_MINIMUM (-127)
+    0x25, 0x7f,        //         LOGICAL_MAXIMUM (127)
+    0x75, 0x08,        //         REPORT_SIZE (8)
+    0x81, 0x06,        //         INPUT (Data,Var,Rel)
+    0xc0,              //       END_COLLECTION
+    0xc0,              //     END_COLLECTION
+    0xc0,              //   END_COLLECTION
+    0xc0               // END_COLLECTION
 };
+
+
 /* This is the same report descriptor as seen in a Logitech mouse. The data
  * described by this descriptor consists of 4 bytes:
  *      .  .  .  .  . B2 B1 B0 .... one byte with mouse button states
@@ -75,6 +120,7 @@ typedef struct{
     char    dx;
     char    dy;
     char    dWheel;
+	char	dPan;//Horizontal Wheel
 }report_t;
 
 static report_t reportBuffer;
@@ -96,6 +142,14 @@ char    d;
     sinus += d;
     reportBuffer.dy = d = DIVIDE_BY_64(sinus);
     cosinus -= d;
+}
+
+static void resetReportBuffer(report_t* r){
+	r->buttonMask = 0;
+	r->dx = 0;
+	r->dy = 0;
+	r->dWheel = 0;
+	r->dPan = 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -156,7 +210,7 @@ int __attribute__((noreturn)) main(void)
     sei();
     DBG1(0x01, 0, 0);       /* debug output: main loop starts */
 	//USB init end
-	
+	unsigned char j = 0;
     for(;;){                /* main event loop */
 		//USB loop start
         DBG1(0x02, 0, 0);   /* debug output: main loop iterates */
@@ -164,9 +218,12 @@ int __attribute__((noreturn)) main(void)
         usbPoll();
         if(usbInterruptIsReady()){
             /* called after every poll of the interrupt endpoint */
-            advanceCircleByFixedAngle();
+            //advanceCircleByFixedAngle();
             DBG1(0x03, 0, 0);   /* debug output: interrupt report prepared */
+			j++;
+			if(j % 16 == 0) reportBuffer.dPan = 1;
             usbSetInterrupt((void *)&reportBuffer, sizeof(reportBuffer));
+			resetReportBuffer(&reportBuffer);
 			tbi(PORTB,PB0);
         }
 		//USB loop end
