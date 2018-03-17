@@ -127,6 +127,8 @@ static report_t reportBuffer;
 static int      sinus = 7 << 6, cosinus = 0;
 static uchar    idleRate;   /* repeat rate for keyboards, never used for mice */
 
+static signed char delta = 0;
+
 
 /* The following function advances sin/cos by a fixed angle
  * and stores the difference to the previous coordinates in the report
@@ -181,10 +183,35 @@ usbRequest_t    *rq = (void *)data;
 
 /* ------------------------------------------------------------------------- */
 
+ISR(PCINT3_vect)//ロリコンA変化
+{
+	cbi(PCMSK,PCINT3);//3 外部割り込み3許可
+	tbi(PORTB,PB0);
+		//_delay_ms(5);   //チャタリング防止
+	/*cbi(GIFR,PCIF); //チャタリング防止の後で、割り込みフラグをクリア
+	if (bit_is_clear(PINB,3)) { // エンコーダ出力AがLowのとき
+			
+		if (bit_is_set(PINB,4)) { // エンコーダ出力BがHighのとき
+			delta++; //時計回り
+			} else {  // エンコーダ出力BがLowのとき
+			delta--; //反時計回り
+		}
+	}*/
+}
+
 int __attribute__((noreturn)) main(void)
 {
 	sbi(DDRB, PB0);
 	sbi(PORTB, PB0);
+	
+	//Rotary init
+	cbi(DDRB,PB3);//PB3入力
+	cbi(DDRB,PB4);//PB4入力
+	sbi(PORTB,PB3);//PB3内部プルアップ
+	sbi(PORTB,PB4);//PB4内部プルアップ
+	
+	sbi(GIMSK,PCIE);//5 外部割り込み一般許可
+	sbi(PCMSK,PCINT3);//3 外部割り込み3許可
 	
 	//USB init
 	uchar   i;
@@ -210,7 +237,7 @@ int __attribute__((noreturn)) main(void)
     sei();
     DBG1(0x01, 0, 0);       /* debug output: main loop starts */
 	//USB init end
-	unsigned char j = 0;
+	//unsigned char j = 0;
     for(;;){                /* main event loop */
 		//USB loop start
         DBG1(0x02, 0, 0);   /* debug output: main loop iterates */
@@ -220,11 +247,11 @@ int __attribute__((noreturn)) main(void)
             /* called after every poll of the interrupt endpoint */
             //advanceCircleByFixedAngle();
             DBG1(0x03, 0, 0);   /* debug output: interrupt report prepared */
-			j++;
-			if(j % 16 == 0) reportBuffer.dPan = 1;
+			//j++;
+			//reportBuffer.dPan = delta;
             usbSetInterrupt((void *)&reportBuffer, sizeof(reportBuffer));
 			resetReportBuffer(&reportBuffer);
-			tbi(PORTB,PB0);
+			//tbi(PORTB,PB0);
         }
 		//USB loop end
     }
