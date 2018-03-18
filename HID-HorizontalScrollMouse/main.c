@@ -183,20 +183,20 @@ usbRequest_t    *rq = (void *)data;
 
 /* ------------------------------------------------------------------------- */
 
-ISR(PCINT3_vect)//ロリコンA変化
+ISR(PCINT0_vect)//ロリコンA変化
 {
-	cbi(PCMSK,PCINT3);//3 外部割り込み3許可
-	tbi(PORTB,PB0);
-		//_delay_ms(5);   //チャタリング防止
-	/*cbi(GIFR,PCIF); //チャタリング防止の後で、割り込みフラグをクリア
-	if (bit_is_clear(PINB,3)) { // エンコーダ出力AがLowのとき
+	if(bit_is_set(PINB,3)) {//立ち上がり(プルアップなので)時のみ処理を行う
+		_delay_ms(2);   //チャタリング防止
+		cbi(GIFR,PCIF); //チャタリング防止の後で、割り込みフラグをクリア
+		if (bit_is_set(PINB,3)) { // エンコーダ出力AがやっぱりHighのとき
 			
-		if (bit_is_set(PINB,4)) { // エンコーダ出力BがHighのとき
-			delta++; //時計回り
-			} else {  // エンコーダ出力BがLowのとき
-			delta--; //反時計回り
+			if (bit_is_clear(PINB,4)) { // エンコーダ出力BがLowのとき
+				delta++; //時計回り
+				} else {  // エンコーダ出力BがHighのとき
+				delta--; //反時計回り
+			}
 		}
-	}*/
+	}
 }
 
 int __attribute__((noreturn)) main(void)
@@ -248,9 +248,10 @@ int __attribute__((noreturn)) main(void)
             //advanceCircleByFixedAngle();
             DBG1(0x03, 0, 0);   /* debug output: interrupt report prepared */
 			//j++;
-			//reportBuffer.dPan = delta;
+			reportBuffer.dPan = delta;
             usbSetInterrupt((void *)&reportBuffer, sizeof(reportBuffer));
-			resetReportBuffer(&reportBuffer);
+			//resetReportBuffer(&reportBuffer);
+			delta=0;
 			//tbi(PORTB,PB0);
         }
 		//USB loop end
