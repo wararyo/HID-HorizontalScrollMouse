@@ -108,13 +108,30 @@ PROGMEM const char usbHidReportDescriptor[118] = { /* USB report descriptor, siz
 };
 
 
-/* This is the same report descriptor as seen in a Logitech mouse. The data
- * described by this descriptor consists of 4 bytes:
- *      .  .  .  .  . B2 B1 B0 .... one byte with mouse button states
- *     X7 X6 X5 X4 X3 X2 X1 X0 .... 8 bit signed relative coordinate x
- *     Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0 .... 8 bit signed relative coordinate y
- *     W7 W6 W5 W4 W3 W2 W1 W0 .... 8 bit signed relative coordinate wheel
- */
+ //
+ // Wheel Mouse - simplified version
+ //
+ // Input report - 5 bytes
+ //
+ //     Byte | D7      D6      D5      D4      D3      D2      D1      D0
+ //    ------+---------------------------------------------------------------------
+ //      0   |  0       0       0    Forward  Back    Middle  Right   Left (Button)
+ //      1   |                             X
+ //      2   |                             Y
+ //      3   |                       Vertical Wheel
+ //      4   |                    Horizontal (Tilt) Wheel
+ //
+ // Feature report - 1 byte
+ //
+ //     Byte | D7      D6      D5      D4   |  D3      D2  |   D1      D0
+ //    ------+------------------------------+--------------+----------------
+ //      0   |  0       0       0       0   |  Horizontal  |    Vertical
+ //                                             (Resolution multiplier)
+ //
+ // Reference
+ //    http://www.microchip.com/forums/m391435.aspx
+ //
+ 
 typedef struct{
     uchar   buttonMask;
     char    dx;
