@@ -70,7 +70,7 @@ PROGMEM const char usbHidReportDescriptor[118] = { /* USB report descriptor, siz
     0x15, 0x00,        //         LOGICAL_MINIMUM (0)
     0x25, 0x01,        //         LOGICAL_MAXIMUM (1)
     0x35, 0x01,        //         PHYSICAL_MINIMUM (1)
-    0x45, 0x08,        //         PHYSICAL_MAXIMUM (8)
+    0x45, 0x08,        //         PHYSICAL_MAXIMUM (4)
     0x75, 0x02,        //         REPORT_SIZE (2)
     0x95, 0x01,        //         REPORT_COUNT (1)
     0xa4,              //         PUSH
@@ -200,20 +200,16 @@ usbRequest_t    *rq = (void *)data;
 
 /* ------------------------------------------------------------------------- */
 
-ISR(PCINT0_vect)//ロリコンA変化
-{
-	if(bit_is_set(PINB,3)) {//立ち上がり(プルアップなので)時のみ処理を行う
-		_delay_ms(2);   //チャタリング防止
-		cbi(GIFR,PCIF); //チャタリング防止の後で、割り込みフラグをクリア
-		if (bit_is_set(PINB,3)) { // エンコーダ出力AがやっぱりHighのとき
-			
-			if (bit_is_clear(PINB,4)) { // エンコーダ出力BがLowのとき
-				delta++; //時計回り
-				} else {  // エンコーダ出力BがHighのとき
-				delta--; //反時計回り
-			}
-		}
-	}
+ISR(TIMER0_COMPA_vect) {
+	
+	//ロータリーエンコーダー処理
+	static const int dir[] = { 0,1,-1,0,-1,0,0,1,1,0,0,-1,0,-1,1,0 }; /* 回転方向テーブル */
+	static int i;//インデックス
+	int n;
+
+	i = (i << 2) | (bit_is_clear(PINB,PB3)<<1) | bit_is_clear(PINB,PB4);   /* 前回値と今回値でインデックスとする */
+	n = dir[i & 0x0F];
+	delta += n;
 }
 
 int __attribute__((noreturn)) main(void)
@@ -227,8 +223,15 @@ int __attribute__((noreturn)) main(void)
 	sbi(PORTB,PB3);//PB3内部プルアップ
 	sbi(PORTB,PB4);//PB4内部プルアップ
 	
-	sbi(GIMSK,PCIE);//5 外部割り込み一般許可
-	sbi(PCMSK,PCINT3);//3 外部割り込み3許可
+	/**
+	* timer interrupt
+	* CTC 16MHz / 1024 / 127 = 120Hzくらい
+	*/
+	TCCR0A = 0b00000010;
+	TCCR0B = 0b00000011;
+	OCR0A  = 144;
+	//TIMSK0 = 0b00000010;
+	sbi(TIMSK,OCIE0A);
 	
 	//USB init
 	uchar   i;
